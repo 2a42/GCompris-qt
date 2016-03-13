@@ -36,8 +36,6 @@ Item {
         hoverEnabled: true
     }
 
-    Item {
-        id: grid
         Repeater {
             id: repeater
             model: Array.apply(null, new Array(numberOfSeeds)).map(function (_, i) { return i})
@@ -46,7 +44,7 @@ Item {
                 width: cell.width
                 height: width
                 id: seed
-                x: (modelData % 3 + Math.random() / 3) * cell.width / 4
+                x: (modelData % 3 + Math.random() / 3) * cell.width / 4 //TODO: random should not be called every time we update the model
                 y: Math.floor(modelData / 3) * cell.width / 4
                 property alias appear: appear
                 property alias disappear: disappear
@@ -65,7 +63,6 @@ Item {
                 }
             }
         }
-    }
 
     NumberAnimation on opacity {
         id: fade

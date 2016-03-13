@@ -26,15 +26,15 @@ var currentLevel = 0
 var numberOfLevel = 4
 var items
 
-var twoPlayers = false
-
 var url = "qrc:/gcompris/src/activities/oware/resource/"
+
+var twoPlayers = false
 
 var numberOfCells = 6 //Number of cells for each player
 
-var state   //state of the game
-var selectedCell
-var lastCell    //last cell where we sow a seed
+var state //state of the game
+var selectedCell //cell where the player clicked
+var lastCell //last cell where we sowed a seed
 
 var currentPlayer = 1
 
@@ -59,6 +59,7 @@ function initLevel() {
     switchPlayer()
 }
 
+//Simply switch players. If it's the computer's turn, play for him
 function switchPlayer() {
     currentPlayer = (currentPlayer === 0) ? 1 : 0
     var active = (currentPlayer === 0) ? items.player1 : items.player2
@@ -73,6 +74,7 @@ function switchPlayer() {
     }
 }
 
+//Display an information message below the board
 function displayMessage(msg) {
     items.info.text = msg
     items.info.animation.start()
@@ -98,6 +100,8 @@ function onClick(parent) {
     playAt(i)
 }
 
+//Start distributing seeds
+//No check about the validity of the move is done, it should be done before calling this function
 function playAt(i) {
     selectedCell = i
     lastCell = i
@@ -116,7 +120,7 @@ function nextCell(cell) {
         return cell - 1
 }
 
-//Calculate the index of the previous cell on the board, rotationg counter clock wise
+//Calculate the index of the previous cell on the board, rotating counter clock wise
 function previousCell(cell) {
     if (cell === numberOfCells * 2 - 1)
         return numberOfCells - 1
@@ -133,6 +137,7 @@ function update() {
     if (state === "distributing") {
         var cell = items.repeater.itemAt(selectedCell)
         lastCell = nextCell(lastCell)
+        //we skip the cell where the seeds come from (oware rules)
         if (lastCell === selectedCell)
             lastCell = nextCell(lastCell)
         var item = items.repeater.itemAt(lastCell)
@@ -141,6 +146,7 @@ function update() {
         item.repeater.itemAt(item.numberOfSeeds-1).opacity = 0
         item.repeater.itemAt(item.numberOfSeeds-1).appear.start()
         cell.repeater.itemAt(cell.numberOfSeeds-1).disappear.start()
+        //There is only one seed left
         if (cell.numberOfSeeds === 1) {
             removeSeeds(lastCell)
             state = "waiting"
@@ -151,23 +157,23 @@ function update() {
 
 //Attempt to remove seeds starting from cell i folowing oware's rules
 function removeSeeds(i) {
-    var score = 0
+    //If the last cell is on the current player's side, we do nothing
     if (i < numberOfCells) {
         if (currentPlayer === 1)
             return
     } else if (currentPlayer === 0)
         return
+    var score = 0
+    //Go through each cell backwards and add score as long as there are 2 or 3 seeds
     for (;;) {
         var cell = items.repeater.itemAt(i)
         if (cell.numberOfSeeds === 2) {
             score += 2
             cell.fade.start()
-        }
-        else if (cell.numberOfSeeds === 3) {
+        } else if (cell.numberOfSeeds === 3) {
             score += 3
             cell.fade.start()
-        }
-        else
+        } else
             break
         if (i === 0 || i === numberOfCells * 2 - 1)
             break;
@@ -183,6 +189,8 @@ function removeSeeds(i) {
 function playComputer() {
     var max = -1;
     var max_i = -1;
+    //Find the best direct move
+    //TODO: add some randomness and eventually make the AI smarter (is it even needed?)
     for (var i=0; i < numberOfCells; i++) {
         var board = getBoardAsArray();
         if (board[i] === 0)
@@ -195,22 +203,22 @@ function playComputer() {
     }
     // no seeds on the board
     if (max_i === -1) {
-        displayMessage("It's a draw!");
+        displayMessage("It's a draw!"); //TODO: draw animation
     } else
         playAt(max_i);
 }
 
-//Simulate a play at on the board by removing seeds at i
+//Simulate a play at on the board by distributing and removing seeds at i
+//Return the number of seeds that the move would score
 function simulatePlay(i, board) {
     var score = 0
-    var seedNumber = board[i]
+    var seedNumber = board[i] //contains the number of seeds left to distribute
     for (var j = i;;) {
-        if (seedNumber === 0)
+        if (seedNumber-- === 0)
             break
         j = nextCell(j)
         if (j === i)
             continue
-        seedNumber--
         board[j]++
         if (board[j] === 2 )
             score += 2

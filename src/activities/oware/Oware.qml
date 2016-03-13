@@ -99,17 +99,17 @@ ActivityBase {
                     left: parent.left
                     top: parent.top
                     topMargin: board.width / 3.5
-                    leftMargin: board.width / 10.6
+                    leftMargin: board.width / 10.95
                 }
 
-                rowSpacing: board.width / 11
-                spacing: board.width / 18.5
+                rowSpacing: board.width / 10
+                spacing: board.width / 20
 
                 Repeater {
                     id: repeater
                     model: cells
                     delegate: Cell {
-                        width: parent.width / 10
+                        width: parent.width / 9.5
                         height: parent.width / 10
                         numberOfSeeds: n
                         state: "contains"
